@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
+using System;
+using System.Reflection;
 
 namespace Dossier_2
 {
@@ -7,22 +9,6 @@ namespace Dossier_2
     {
         static void Main(string[] args)
         {
-
-            // Text langsam lesen
-            {
-                string meinText = ("Es ist mitten in der Nacht. Du schreckst auf und weisst im ersten Moment gar nicht, wo du dich befindest. Deine Hand tastet die rechte Wand ab. Da merkst du: Alles ist gut, du liegst du Hause im Bett deiner Einzimmerwohnung. Aber irgendetwas hat dich aufgeweckt – ein ungewohntes Geräusch? Du stehst auf, um nach deiner Katze Garfield zu sehen. Drückst mit deiner Hand auf den Lichtschalter – und nochmals. Doch das Licht geht nicht an. Der Strom ist ausgefallen.");
-            SlowTyping(meinText);
-
-            }
-            private static void SlowTyping(string meinText)
-            {
-                 for (int i = 0; i < meinText.Length; i++)
-                {
-                    Console.Write(meinText[i]);
-                    System.Threading.Thread.Sleep(70);
-                }
-            }
-
 
             //Titel geben
             Console.Title = "Black Out - dein Wissen ist gefragt!";
@@ -79,12 +65,23 @@ namespace Dossier_2
             
             if(start.ToLower() == "a")
             {
-                Console.WriteLine
-                ("Es ist mitten in der Nacht. " +
-                "Du schreckst auf und weisst im ersten Moment gar nicht, wo du dich befindest. " +
-                "Deine Hand tastet die rechte Wand ab. Da merkst du: Alles ist gut, du liegst du Hause im Bett deiner Einzimmerwohnung. " +
-                "Aber irgendetwas hat dich aufgeweckt – ein ungewohntes Geräusch? " +
-                "Du stehst auf, um nach deiner Katze Garfield zu sehen. Drückst mit deiner Hand auf den Lichtschalter – und nochmals. Doch das Licht geht nicht an. Der Strom ist ausgefallen.");
+
+
+                // Text langsam lesen
+                {
+                    string meinText = ("Es ist mitten in der Nacht. Du schreckst auf und weisst im ersten Moment gar nicht, wo du dich befindest. Deine Hand tastet die rechte Wand ab. Da merkst du: Alles ist gut, du liegst du Hause im Bett deiner Einzimmerwohnung. Aber irgendetwas hat dich aufgeweckt – ein ungewohntes Geräusch? Du stehst auf, um nach deiner Katze Garfield zu sehen. Drückst mit deiner Hand auf den Lichtschalter – und nochmals. Doch das Licht geht nicht an. Der Strom ist ausgefallen.");
+                    SlowTyping(meinText);
+
+                }
+                static void SlowTyping(string meinText)
+                {
+                    for (int i = 0; i < meinText.Length; i++)
+                    {
+                        Console.Write(meinText[i]);
+                        System.Threading.Thread.Sleep(70);
+                    }
+                }
+               
                 Console.ReadKey();
 
                 ///Entscheidung 1
@@ -144,30 +141,36 @@ namespace Dossier_2
                         {
                           Console.WriteLine
                            ("Wie lautet nochmals die Nummer der Feuerwehr?");
-                           string notfallnummertext = Console.ReadLine();
-                           int notfallnummer = Convert.ToInt32(notfallnummertext);
+                        Console.WriteLine
+                         ("Antworte schnell! Du hast nur 10 Sekunden Zeit, um zu antworten!");
+                        string notfallnummertext = Reader.ReadLine(10 * 1000);
 
-                            switch (notfallnummer)
+                            switch (notfallnummertext)
                             {
-                            case 118:
+                            case "118":
                                 Console.WriteLine
                                     ("Perfekt, du hast die richtige Nummer gewählt. " +
                                     "Doch die Feuerwehr lacht nur, als du ihnen von deinem Notfall erzählst. " +
                                     "Sie empfehlen dir, dich wieder schlafen zu legen.");
                             break;
 
-                            case 112:
+                            case "112":
                                 Console.WriteLine
                                     ("Du hast die allgemeine Notfallnummer gewählt und wirst zur Feuerwehr weitergeleitet. " +
                                     "Doch die Feuerwehr lacht nur, als du ihnen von deinem Notfall erzählst. " +
                                     "Sie empfehlen dir, dich wieder schlafen zu legen.");
                             break;
 
-                            case 144:
+                            case "144":
                                 Console.WriteLine
                                     ("Du hast die Sanitäts-Notfallnummer gewählt und wirst zur Feuerwehr weitergeleitet. " +
                                     "Doch die Feuerwehr lacht nur, als du ihnen von deinem Notfall erzählst. " +
                                     "Sie empfehlen dir, dich wieder schlafen zu legen.");
+                            break;
+
+                            case "Langsam!":
+                                Console.WriteLine
+                                    ("Du warst zu langsam. Das Spiel ist zu Ende.");
                             break;
 
                             default:
@@ -300,5 +303,45 @@ namespace Dossier_2
         }
 
     }
-}
+    class Reader
+    {
+        private static Thread inputThread;
+        private static AutoResetEvent getInput, gotInput;
+        private static string input;
 
+        static Reader()
+        {
+            getInput.WaitOne();
+            input = Console.ReadLine();
+            gotInput.Set();
+
+        }
+
+        private static void reader()
+        {
+            while (true)
+            {
+                getInput.WaitOne();
+                input = Console.ReadLine();
+                gotInput.Set();
+            }
+        }
+        ///neue Readline-Methode (nicht selbst programmiert)
+        public static string ReadLine(int timeOutMillisecs = Timeout.Infinite)
+        {
+            getInput.Set();
+            bool success = gotInput.WaitOne(timeOutMillisecs);
+            if (success)
+            {
+                return input;
+            }
+            else
+            {
+                {
+                    return "Langsam";
+
+                }
+            }
+        }
+    }
+}
